@@ -2,8 +2,6 @@ set ssid to do shell script POSIX path of ((path to me as text) & "::" & "get-co
 
 set knownNetworksFilePath to POSIX path of ((path to me as text) & "::" & "known-wifi-networks.txt")
 set knownNetworks to paragraphs of (read POSIX file knownNetworksFilePath)
--- set knownNetworks to {"Turtles!"}
-
 
 -- Don't do anything if connected to a known Wi-Fi network.
 if ssid is in knownNetworks then
