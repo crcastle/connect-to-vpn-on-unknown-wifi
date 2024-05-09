@@ -10,7 +10,7 @@
 		<string>/Users/crcastle/bin/connect-mullvad-on-unknown-network.applescript</string>
 	</array>
 	<key>RunAtLoad</key>
-	<true/>
+	<false/>
 	<key>WatchPaths</key>
 	<array>
 		<string>/Library/Preferences/SystemConfiguration/com.apple.airport.preferences.plist</string>
