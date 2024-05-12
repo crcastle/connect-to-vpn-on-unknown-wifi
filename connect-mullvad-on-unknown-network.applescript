@@ -4,6 +4,12 @@
 -- The below script will create the file if it doesn't exist.
 set knownNetworksFilePath to POSIX file "/Users/crcastle/bin/known-wifi-networks.txt"
 
+-- Don't do anything if Mullvad VPN is already connected.
+set mullvadStatus to do shell script "/usr/local/bin/mullvad status"
+if mullvadStatus starts with "Connected" then
+	return
+end if
+
 -- Get Wi-Fi SSID that computer is currently connected to
 try
 	set ssid to do shell script "networksetup -getairportnetwork en0 | sed -n 's/^.* Network: //p'"
@@ -31,12 +37,6 @@ end tell
 
 -- Don't do anything if connected to a known Wi-Fi network.
 if ssid is in knownNetworks then
-	return
-end if
-
--- Don't do anything if Mullvad VPN is already connected.
-set mullvadStatus to do shell script "/usr/local/bin/mullvad status"
-if mullvadStatus starts with "Connected" then
 	return
 end if
 
