@@ -46,11 +46,11 @@ tell application "Mullvad VPN" to (display dialog msg with icon caution buttons 
 
 -- Connect to Mullvad if "Connect" clicked or no response after specified time
 if button returned of result = "Connect" or gave up of result then
-	-- Disable Tailscale
+	-- Configure pf packet filter so that outgoing connections to Tailscale 100.64.0.0/10 IPv4 addresses are permitted
 	try
-		set tailscaleStatus to do shell script "/Applications/Tailscale.app/Contents/MacOS/Tailscale down"
+		do shell script "echo 'pass out quick inet from any to { 100.64.0.0/10, !100.64.0.7 }' | sudo pfctl -a com.apple/mullvad-tailscale -f -"
 	on error errStr number errorNumber
-		display dialog "Tailscale error: " & errStr & " (" & errorNumber & ")" with icon stop buttons {"Ok"}
+		display dialog "Error configuring pf packet filter to allow Tailscale: " & errStr & " (" & errorNumber & ")" with icon stop buttons {"Ok"}
 	end try
 	
 	-- Enable Mullvad VPN
@@ -60,6 +60,15 @@ if button returned of result = "Connect" or gave up of result then
 	on error errStr number errorNumber
 		display dialog "Mullvad VPN error: " & errStr & " (" & errorNumber & ")" with icon stop buttons {"Ok"}
 		return
+	end try
+
+	-- Route DNS requests to 100.64.0.7 to go to Mullvad (not Tailscale) while Mullvad VPN is connected
+	-- They get sucked up by the Tailscale route becuase that IP address overlaps with Tailscale's 100.64.0.0/10 IP range
+	-- It looks like this route is automatically deleted when Mullvad is disconnected because 10.65.0.1 is no longer accessible
+	try
+		do shell script "sudo route -q -n add 100.64.0.7 default"
+	on error errStr number errorNumber
+		display dialog "Error configuring route sending DNS to Mullvad: " & errStr & " (" & errorNumber & ")" with icon stop buttons {"Ok"}
 	end try
 	
 	delay 1 --display the below notification *after* Mullvad's native "connected" notification because this one is persistent
