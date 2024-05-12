@@ -56,7 +56,7 @@ if button returned of result = "Connect" or gave up of result then
 	-- Enable Mullvad VPN
 	try
 		delay 2 --wait for changes from Tailscale disabling to settle down
-		set mullvadConnectStatus to do shell script "/usr/local/bin/mullvad connect"
+		set mullvadConnectStatus to do shell script "/usr/local/bin/mullvad connect --wait"
 	on error errStr number errorNumber
 		display dialog "Mullvad VPN error: " & errStr & " (" & errorNumber & ")" with icon stop buttons {"Ok"}
 		return
