@@ -47,15 +47,21 @@ tell application "Mullvad VPN" to (display dialog msg with icon caution buttons 
 -- Connect to Mullvad if "Connect" clicked or no response after specified time
 if button returned of result = "Connect" or gave up of result then
 	-- Configure pf packet filter so that outgoing connections to Tailscale 100.64.0.0/10 IPv4 addresses are permitted
+	-- Mullvad client blocks these. This rule takes precendence.
 	try
 		do shell script "echo 'pass out quick inet from any to { 100.64.0.0/10, !100.64.0.7 }' | sudo pfctl -a com.apple/mullvad-tailscale -f -"
 	on error errStr number errorNumber
 		display dialog "Error configuring pf packet filter to allow Tailscale: " & errStr & " (" & errorNumber & ")" with icon stop buttons {"Ok"}
 	end try
+
+	-- Disable Tailscale Magic DNS
+	try
+		do shell script "/Applications/Tailscale.app/Contents/MacOS/Tailscale up --accept-dns=false --accept-routes"
+	end try
 	
 	-- Enable Mullvad VPN
 	try
-		delay 2 --wait for changes from Tailscale disabling to settle down
+		delay 2 --wait for changes from Tailscale DNS change to settle down
 		set mullvadConnectStatus to do shell script "/usr/local/bin/mullvad connect --wait"
 	on error errStr number errorNumber
 		display dialog "Mullvad VPN error: " & errStr & " (" & errorNumber & ")" with icon stop buttons {"Ok"}
